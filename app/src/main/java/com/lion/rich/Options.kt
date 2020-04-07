@@ -1,12 +1,15 @@
 package com.lion.rich
+import android.graphics.Typeface
 import android.graphics.drawable.Drawable
 import android.text.SpannableString
-import android.text.style.AbsoluteSizeSpan
-import android.text.style.BackgroundColorSpan
-import android.text.style.ForegroundColorSpan
-import android.text.style.ImageSpan
+import android.text.style.*
+import androidx.annotation.IntDef
 
 class Options(text: SpannableString) : BaseOption(text) {
+    val BOLD = Typeface.BOLD
+    val ITALIC = Typeface.ITALIC
+    val BOLD_ITALIC = Typeface.BOLD_ITALIC
+
     constructor(source: CharSequence) : this(SpannableString(source))
 
     var size: Int? = null
@@ -32,6 +35,13 @@ class Options(text: SpannableString) : BaseOption(text) {
                 if (bounds.isEmpty)
                     setBounds(0, 0, intrinsicHeight, intrinsicHeight)
                 +ImageSpan(this)
+            }
+        }
+
+    var textStyle:Int?=null
+        set(v) {
+            field = v?.apply {
+                +StyleSpan(this)
             }
         }
 }

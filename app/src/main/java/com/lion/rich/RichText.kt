@@ -1,5 +1,8 @@
 package com.lion.rich
 
-fun rich(block: RichTextBuilder.() -> Unit): CharSequence {
-    return RichTextBuilder().apply(block).text
+import android.content.Context
+import android.widget.TextView
+
+fun TextView.rich(block: RichTextBuilder.() -> Unit): CharSequence {
+    return RichTextBuilder(this).apply(block).text
 }
