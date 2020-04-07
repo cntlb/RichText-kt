@@ -3,15 +3,17 @@ package com.example.myapplication
 import android.graphics.Color
 import android.graphics.drawable.Drawable
 import android.os.Bundle
-import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
+import android.text.TextPaint
 import android.text.method.LinkMovementMethod
 import android.text.style.*
 import android.view.View
+import android.view.textclassifier.TextLinks
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
+import org.intellij.lang.annotations.Language
 
 class MainActivity : AppCompatActivity() {
 
@@ -31,8 +33,14 @@ class MainActivity : AppCompatActivity() {
             }
             "icon"{
                 img = getDrawable(R.mipmap.ic_launcher)
+                onClick {
+                    Toast.makeText(this@MainActivity, text, Toast.LENGTH_LONG).show()
+                }
             }
-            +"ccc"
+            "ccc"("http://www.baidu.com") {
+                linkColor = Color.RED
+//                underline = false
+            }
         }
         textView.movementMethod = LinkMovementMethod.getInstance()
     }
@@ -44,48 +52,91 @@ class RichTextBuilder {
     operator fun CharSequence.unaryPlus() = append(this)
 
     operator fun CharSequence.invoke(block: Options.() -> Unit) {
-        append(this, Options(this).apply(block))
+        append(Options(this).apply(block).text)
+    }
+
+    operator fun CharSequence.invoke(url: String, block: UrlOptions.() -> Unit) {
+        append(UrlOptions(this, url).apply(block).build())
     }
 
     private fun append(cs: CharSequence, opt: Options? = null) {
-        val start = text.length
         text.append(cs)
-        opt ?: return
-        opt.size?.run {
-            text.setSpan(AbsoluteSizeSpan(this), start)
-        }
-        opt.color?.run {
-            text.setSpan(ForegroundColorSpan(this), start)
-        }
-        opt.backgroundColor?.run {
-            text.setSpan(BackgroundColorSpan(this), start)
-        }
-        opt.img?.run {
-            setBounds(0, 0, intrinsicWidth, intrinsicHeight)
-            text.setSpan(ImageSpan(this), start)
-        }
-        opt.onClick?.run {
-            text.setSpan(object : ClickableSpan() {
-                override fun onClick(widget: View) = this@run()
-            }, start)
-        }
     }
-
-    private fun Spannable.setSpan(what: Any, start: Int) {
-        setSpan(what, start, length, SpannableString.SPAN_INCLUSIVE_EXCLUSIVE)
-    }
-
 }
 
-class Options(var text: CharSequence = "") {
-    var size: Int? = null
-    var color: Int? = null
-    var backgroundColor: Int? = null
-    var img: Drawable? = null
+open class BaseOption(var text: SpannableString) {
+    constructor(source: CharSequence) : this(SpannableString(source))
+
+    protected val start = 0
+    protected val end = text.length
+
+    protected operator fun Any.unaryPlus() {
+        text.setSpan(this, start, end, SpannableString.SPAN_INCLUSIVE_EXCLUSIVE)
+    }
+
     var onClick: (() -> Unit)? = null
+        set(run) {
+            field = run?.apply {
+                +object : ClickableSpan() {
+                    override fun onClick(widget: View) = run()
+                }
+            }
+        }
 
     fun onClick(block: () -> Unit) {
         onClick = block
+    }
+}
+
+class Options(text: SpannableString) : BaseOption(text) {
+    constructor(source: CharSequence) : this(SpannableString(source))
+
+    var size: Int? = null
+        set(v) {
+            field = v ?: return
+            +AbsoluteSizeSpan(v)
+        }
+
+    var color: Int? = null
+        set(v) {
+            field = v ?: return
+            +ForegroundColorSpan(v)
+        }
+
+    var backgroundColor: Int? = null
+        set(v) {
+            field = v ?: return
+            +BackgroundColorSpan(v)
+        }
+    var img: Drawable? = null
+        set(v) {
+            field = v?.apply {
+                if (bounds.isEmpty)
+                    setBounds(0, 0, intrinsicHeight, intrinsicHeight)
+                +ImageSpan(this)
+            }
+        }
+}
+
+class UrlOptions(source: CharSequence, val url: String) : BaseOption(source) {
+    var linkColor: Int? = null
+    var underline: Boolean? = null
+
+    fun build(): CharSequence {
+        +RichUrlSpan(this)
+        return text
+    }
+}
+
+class RichUrlSpan(val opt: UrlOptions) : URLSpan(opt.url) {
+    override fun updateDrawState(ds: TextPaint) {
+        super.updateDrawState(ds)
+        opt.linkColor?.run {
+            ds.color = this
+        }
+        opt.underline?.run {
+            ds.isUnderlineText = this
+        }
     }
 }
 
