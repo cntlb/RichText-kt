@@ -4,6 +4,7 @@ import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.drawable.Drawable
+import android.text.Spannable
 import android.text.SpannableString
 import android.text.SpannableStringBuilder
 import android.text.style.ImageSpan
@@ -35,6 +36,17 @@ class RichTextBuilder(private val textView: TextView) {
         append(UrlOptions(this, url).apply {
             block?.invoke(this)
         }.build())
+    }
+
+    fun CharSequence.span(span: Any) {
+        val start = text.length
+        +this
+        text.setSpan(
+            span,
+            start,
+            start + length,
+            SpannableString.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
     }
 
     fun newline(num: Int = 1) = repeat(num) { +"\n" }

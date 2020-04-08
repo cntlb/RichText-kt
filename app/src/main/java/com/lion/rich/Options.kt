@@ -29,6 +29,13 @@ class Options(text: SpannableString) : BaseOption(text) {
             field = v ?: return
             +BackgroundColorSpan(v)
         }
+
+    var lineBackgroundColor: Int? = null
+        set(v) {
+            field = v ?: return
+            +LineBackgroundSpan.Standard(v)
+        }
+
     var img: Drawable? = null
         set(v) {
             field = v?.apply {
