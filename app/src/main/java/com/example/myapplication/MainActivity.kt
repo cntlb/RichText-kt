@@ -19,7 +19,8 @@ import kotlin.reflect.KClass
 
 class MainActivity : AppCompatActivity() {
     private val array = arrayOf<Pair<String, KClass<out Activity>>>(
-        "中国战“疫”制胜之道" to NewsActivity::class
+        "中国战“疫”制胜之道" to NewsActivity::class,
+        "文档结构示例" to DocumentStructureActivity::class
     )
 
     override fun onCreate(icicle: Bundle?) {

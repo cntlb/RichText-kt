@@ -18,6 +18,7 @@
             </intent-filter>
         </activity>
         <activity android:name=".NewsActivity" android:parentActivityName=".MainActivity"/>
+        <activity android:name=".DocumentStructureActivity" android:parentActivityName=".MainActivity"/>
     </application>
 
 </manifest>
